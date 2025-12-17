@@ -232,30 +232,39 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 						<div className="ingredient-list">
 							{ingredients.map((ingredient, idx) => (
 								<div key={idx} className="ingredient-row">
-									<input
-										type="text"
-										placeholder="Zutat"
-										value={ingredient.name}
-										onChange={(e) =>
-											handleIngredientChange(idx, 'name', e.target.value)
-										}
-									/>
-									<input
-										type="number"
-										placeholder="Menge"
-										value={ingredient.quantity}
-										onChange={(e) =>
-											handleIngredientChange(idx, 'quantity', e.target.value)
-										}
-									/>
-									<input
-										type="text"
-										placeholder="Einheit (g, ml, Stück...)"
-										value={ingredient.unit}
-										onChange={(e) =>
-											handleIngredientChange(idx, 'unit', e.target.value)
-										}
-									/>
+									<label className="ingredient-field">
+										<span className="field-label">Zutat</span>
+										<input
+											type="text"
+											placeholder="Zutat"
+											value={ingredient.name}
+											onChange={(e) =>
+												handleIngredientChange(idx, 'name', e.target.value)
+											}
+										/>
+									</label>
+									<label className="ingredient-field">
+										<span className="field-label">Menge</span>
+										<input
+											type="number"
+											placeholder="Menge"
+											value={ingredient.quantity}
+											onChange={(e) =>
+												handleIngredientChange(idx, 'quantity', e.target.value)
+											}
+										/>
+									</label>
+									<label className="ingredient-field">
+										<span className="field-label">Einheit</span>
+										<input
+											type="text"
+											placeholder="Einheit (g, ml, Stück...)"
+											value={ingredient.unit}
+											onChange={(e) =>
+												handleIngredientChange(idx, 'unit', e.target.value)
+											}
+										/>
+									</label>
 								</div>
 							))}
 							<button className="ghost" type="button" onClick={addIngredientRow}>

@@ -52,19 +52,14 @@ const AuthScreen: React.FC<{
 			<div className="hero-card">
 				<p className="eyebrow">Salatrunde · Anmeldung</p>
 				<h1>
-					Crunchy, frisch
+					Wöchentlich frisch
 					<br />
-					und planbar.
+					und jeder hat Überblick!
 				</h1>
 				<p className="lede">
 					Registriere dich einmal mit Name &amp; E-Mail. Danach reicht deine E-Mail, um
 					dich für die Runde dieser Woche ein- oder auszutragen.
 				</p>
-				<div className="hero-badges">
-					<span>Copy-Paste Einkaufsliste</span>
-					<span>Reset jede Woche automatisch</span>
-					<span>Template flexibel bearbeitbar</span>
-				</div>
 			</div>
 			<form className="card auth-card" onSubmit={handleSubmit}>
 				<div className="auth-tabs">

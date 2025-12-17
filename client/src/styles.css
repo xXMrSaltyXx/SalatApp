@@ -345,6 +345,25 @@ select {
 	display: grid;
 	grid-template-columns: 2fr 1fr 1fr;
 	gap: 8px;
+	padding: 12px;
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	background: #fbfdf8;
+}
+
+.ingredient-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-weight: 600;
+}
+
+.field-label {
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+	display: block;
 }
 
 .list {
@@ -424,13 +443,6 @@ select {
 	box-shadow: var(--shadow);
 }
 
-.hero-badges {
-	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
-	margin-top: 14px;
-}
-
 .hero-badges span {
 	background: var(--surface);
 	border-radius: 12px;
@@ -503,5 +515,82 @@ select {
 	}
 	to {
 		transform: rotate(360deg);
+	}
+}
+
+@media (max-width: 860px) {
+	.page,
+	.app-shell {
+		padding: 20px 16px 48px;
+	}
+
+	.topbar {
+		grid-template-columns: 1fr;
+		gap: 12px;
+		position: static;
+	}
+
+	.nav-links {
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.user-chip {
+		width: 100%;
+		justify-content: space-between;
+		flex-wrap: wrap;
+	}
+
+	.section-header {
+		align-items: flex-start;
+	}
+
+	.highlight {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.ingredient-row {
+		grid-template-columns: 1fr;
+	}
+
+	.list-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+}
+
+@media (max-width: 680px) {
+	h1 {
+		font-size: 28px;
+		line-height: 1.2;
+	}
+
+	.auth-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.form-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.button-row,
+	.cta-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.section-header input {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.topbar {
+		padding: 12px 14px;
+	}
+
+	.card {
+		padding: 16px;
 	}
 }
