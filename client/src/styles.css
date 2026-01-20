@@ -342,13 +342,35 @@ select {
 }
 
 .ingredient-row {
-	display: grid;
-	grid-template-columns: 2fr 1fr 1fr;
-	gap: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
 	padding: 12px;
 	border: 1px solid var(--border);
 	border-radius: 14px;
 	background: #fbfdf8;
+}
+
+.ingredient-info {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.ingredient-name {
+	font-weight: 700;
+}
+
+.ingredient-meta {
+	color: var(--muted);
+	font-size: 13px;
+}
+
+.ingredient-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
 }
 
 .ingredient-field {
@@ -364,6 +386,41 @@ select {
 	text-transform: uppercase;
 	color: var(--muted);
 	display: block;
+}
+
+.modal-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(18, 28, 20, 0.35);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	z-index: 40;
+}
+
+.modal {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 18px;
+	box-shadow: var(--shadow);
+	width: min(520px, 100%);
+	padding: 20px;
+	display: grid;
+	gap: 12px;
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+}
+
+.modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
 }
 
 .list {
@@ -551,7 +608,14 @@ select {
 	}
 
 	.ingredient-row {
-		grid-template-columns: 1fr;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.ingredient-actions {
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
 	}
 
 	.list-row {

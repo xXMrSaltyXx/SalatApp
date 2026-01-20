@@ -175,7 +175,8 @@ function loadActiveTemplate() {
   return loadTemplateById(activeTemplateId);
 }
 
-function saveTemplate({ title, servings, ingredients, templateId, userId }) {
+function saveTemplate({ title, ingredients, templateId, userId }) {
+  const servings = 1;
   const nowIso = new Date().toISOString();
   const insertTemplate = db.prepare(
     'INSERT INTO recipe_templates (title, servings, created_by_user_id, updated_at) VALUES (?, ?, ?, ?)',
@@ -226,7 +227,7 @@ function loadTemplateById(id) {
       'SELECT id, name, quantity, unit FROM template_ingredients WHERE template_id = ? ORDER BY id ASC',
     )
     .all(template.id);
-  return { ...template, ingredients };
+  return { ...template, servings: 1, ingredients };
 }
 
 // --- middleware ------------------------------------------------------------
@@ -380,7 +381,7 @@ app.get('/api/templates', (_req, res) => {
       'SELECT id, title, servings, updated_at as updatedAt FROM recipe_templates ORDER BY updated_at DESC',
     )
     .all();
-  res.json({ templates });
+  res.json({ templates: templates.map((t) => ({ ...t, servings: 1 })) });
 });
 
 app.get('/api/template', (_req, res) => {
@@ -389,11 +390,11 @@ app.get('/api/template', (_req, res) => {
 });
 
 app.post('/api/template', requireAuth, (req, res) => {
-  const { title, servings, ingredients } = req.body || {};
-  if (!title || !servings || !Array.isArray(ingredients)) {
+  const { title, ingredients } = req.body || {};
+  if (!title || !Array.isArray(ingredients)) {
     return res
       .status(400)
-      .json({ error: 'Titel, Portionen und Zutaten werden benötigt' });
+      .json({ error: 'Titel und Zutaten werden benoetigt' });
   }
   const filteredIngredients = ingredients
     .filter((item) => item.name && item.quantity !== undefined)
@@ -407,7 +408,6 @@ app.post('/api/template', requireAuth, (req, res) => {
   }
   const templateId = saveTemplate({
     title: title.trim(),
-    servings: Number(servings),
     ingredients: filteredIngredients,
     userId: req.user.id,
   });
@@ -418,11 +418,11 @@ app.post('/api/template', requireAuth, (req, res) => {
 
 app.put('/api/template/:id', requireAuth, (req, res) => {
   const { id } = req.params;
-  const { title, servings, ingredients } = req.body || {};
-  if (!title || !servings || !Array.isArray(ingredients)) {
+  const { title, ingredients } = req.body || {};
+  if (!title || !Array.isArray(ingredients)) {
     return res
       .status(400)
-      .json({ error: 'Titel, Portionen und Zutaten werden benötigt' });
+      .json({ error: 'Titel und Zutaten werden benoetigt' });
   }
   const existing = db
     .prepare('SELECT id FROM recipe_templates WHERE id = ?')
@@ -440,7 +440,6 @@ app.put('/api/template/:id', requireAuth, (req, res) => {
   saveTemplate({
     templateId: Number(id),
     title: title.trim(),
-    servings: Number(servings),
     ingredients: filteredIngredients,
     userId: req.user.id,
   });

@@ -21,15 +21,18 @@ const emptyIngredient = (): Ingredient => ({ name: '', quantity: 0, unit: '' });
 const AdminPage: React.FC<AdminProps> = ({ user }) => {
 	const [template, setTemplate] = useState<Template | null>(null);
 	const [title, setTitle] = useState('Standard Salat');
-	const [servings, setServings] = useState(4);
-	const [ingredients, setIngredients] = useState<Ingredient[]>([
-		emptyIngredient(),
-		emptyIngredient()
-	]);
+	const servings = 1;
+	const [ingredients, setIngredients] = useState<Ingredient[]>([]);
 	const [participants, setParticipants] = useState<Participant[]>([]);
 	const [resetSettings, setResetSettings] = useState<ResetSettings | null>(null);
 	const [timeValue, setTimeValue] = useState('23:59');
 	const [dayValue, setDayValue] = useState('5');
+
+	const [ingredientModalOpen, setIngredientModalOpen] = useState(false);
+	const [ingredientDraft, setIngredientDraft] = useState<Ingredient>(emptyIngredient());
+	const [ingredientEditIndex, setIngredientEditIndex] = useState<number | null>(null);
+	const [ingredientError, setIngredientError] = useState<string | null>(null);
+	const [ingredientDraftPeople, setIngredientDraftPeople] = useState(1);
 
 	const [addName, setAddName] = useState('');
 	const [addEmail, setAddEmail] = useState('');
@@ -51,8 +54,7 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 			if (tpl) {
 				setTemplate(tpl);
 				setTitle(tpl.title);
-				setServings(tpl.servings);
-				setIngredients(tpl.ingredients.length > 0 ? tpl.ingredients : [emptyIngredient()]);
+				setIngredients(tpl.ingredients.length > 0 ? tpl.ingredients : []);
 			}
 			setParticipants(participantList);
 			setResetSettings(resetData.settings);
@@ -77,17 +79,70 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 
 	const peopleCount = useMemo(() => participants.length, [participants]);
 
-	const handleIngredientChange = (index: number, field: keyof Ingredient, value: string) => {
-		setIngredients((prev) => {
-			const next = [...prev];
-			const parsed = field === 'quantity' ? parseFloat(value) || 0 : value;
-			next[index] = { ...next[index], [field]: parsed };
-			return next;
+	const formatIngredientAmount = (ingredient: Ingredient) => {
+		const quantity = Number(ingredient.quantity);
+		const hasQuantity = Number.isFinite(quantity) && quantity !== 0;
+		const unit = ingredient.unit ? ingredient.unit.trim() : '';
+
+		if (hasQuantity && unit) return `${quantity} ${unit}`;
+		if (hasQuantity) return `${quantity}`;
+		if (unit) return unit;
+		return '-';
+	};
+
+	const openIngredientModal = (ingredient?: Ingredient, index?: number) => {
+		setIngredientDraft(ingredient ? { ...ingredient } : emptyIngredient());
+		setIngredientEditIndex(typeof index === 'number' ? index : null);
+		setIngredientError(null);
+		setIngredientDraftPeople(1);
+		setIngredientModalOpen(true);
+	};
+
+	const closeIngredientModal = () => {
+		setIngredientModalOpen(false);
+		setIngredientEditIndex(null);
+		setIngredientError(null);
+	};
+
+	const handleIngredientDraftChange = (field: keyof Ingredient, value: string) => {
+		setIngredientError(null);
+		setIngredientDraft((prev) => {
+			if (field === 'quantity') {
+				const parsed = value === '' ? 0 : parseFloat(value) || 0;
+				return { ...prev, quantity: parsed };
+			}
+			return { ...prev, [field]: value };
 		});
 	};
 
-	const addIngredientRow = () => {
-		setIngredients((prev) => [...prev, emptyIngredient()]);
+	const handleSaveIngredient = () => {
+		const name = ingredientDraft.name.trim();
+		if (!name) {
+			setIngredientError('Bitte einen Namen angeben');
+			return;
+		}
+		const rawQuantity = Number(ingredientDraft.quantity) || 0;
+		const peopleCount = Math.max(1, Number(ingredientDraftPeople) || 1);
+		const nextIngredient: Ingredient = {
+			...ingredientDraft,
+			name,
+			quantity: rawQuantity / peopleCount,
+			unit: ingredientDraft.unit ? ingredientDraft.unit.trim() : ''
+		};
+
+		setIngredients((prev) => {
+			if (ingredientEditIndex === null || ingredientEditIndex < 0) {
+				return [...prev, nextIngredient];
+			}
+			const updated = [...prev];
+			updated[ingredientEditIndex] = nextIngredient;
+			return updated;
+		});
+		closeIngredientModal();
+	};
+
+	const handleRemoveIngredient = (index: number) => {
+		setIngredients((prev) => prev.filter((_, idx) => idx !== index));
 	};
 
 	const handleSaveTemplate = async () => {
@@ -218,57 +273,54 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 									placeholder="z.B. Grüner Crunch"
 								/>
 							</label>
-							<label className="field">
-								<span>Portionen</span>
-								<input
-									type="number"
-									min={1}
-									value={servings}
-									onChange={(e) => setServings(parseInt(e.target.value, 10) || 0)}
-								/>
-							</label>
 						</div>
 						<div className="section-divider" aria-hidden />
 						<div className="ingredient-list">
+							{ingredients.length === 0 && (
+								<p className="muted">Noch keine Zutaten angelegt.</p>
+							)}
 							{ingredients.map((ingredient, idx) => (
-								<div key={idx} className="ingredient-row">
-									<label className="ingredient-field">
-										<span className="field-label">Zutat</span>
-										<input
-											type="text"
-											placeholder="Zutat"
-											value={ingredient.name}
-											onChange={(e) =>
-												handleIngredientChange(idx, 'name', e.target.value)
-											}
-										/>
-									</label>
-									<label className="ingredient-field">
-										<span className="field-label">Menge</span>
-										<input
-											type="number"
-											placeholder="Menge"
-											value={ingredient.quantity}
-											onChange={(e) =>
-												handleIngredientChange(idx, 'quantity', e.target.value)
-											}
-										/>
-									</label>
-									<label className="ingredient-field">
-										<span className="field-label">Einheit</span>
-										<input
-											type="text"
-											placeholder="Einheit (g, ml, Stück...)"
-											value={ingredient.unit}
-											onChange={(e) =>
-												handleIngredientChange(idx, 'unit', e.target.value)
-											}
-										/>
-									</label>
+								<div
+									key={idx}
+									className="ingredient-row"
+									onDoubleClick={() => openIngredientModal(ingredient, idx)}
+								>
+									<div className="ingredient-info">
+										<div className="ingredient-name">
+											{ingredient.name ? ingredient.name : 'Unbenannt'}
+										</div>
+										<div className="ingredient-meta">
+											{formatIngredientAmount(ingredient)}
+										</div>
+									</div>
+									<div className="ingredient-actions">
+										<button
+											className="ghost"
+											type="button"
+											onClick={(event) => {
+												event.stopPropagation();
+												openIngredientModal(ingredient, idx);
+											}}
+											onDoubleClick={(event) => event.stopPropagation()}
+										>
+											Bearbeiten
+										</button>
+										<button
+											className="ghost danger"
+											type="button"
+											onClick={(event) => {
+												event.stopPropagation();
+												handleRemoveIngredient(idx);
+											}}
+											onDoubleClick={(event) => event.stopPropagation()}
+										>
+											Loeschen
+										</button>
+									</div>
 								</div>
 							))}
-							<button className="ghost" type="button" onClick={addIngredientRow}>
-								+ Zutat hinzufügen
+							<button className="ghost" type="button" onClick={() => openIngredientModal()}>
+								+ Zutat hinzufuegen
 							</button>
 						</div>
 					</>
@@ -364,6 +416,80 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 					</label>
 				</div>
 			</section>
+			{ingredientModalOpen && (
+				<div
+					className="modal-backdrop"
+					role="dialog"
+					aria-modal="true"
+					onClick={closeIngredientModal}
+				>
+					<div className="modal" onClick={(event) => event.stopPropagation()}>
+						<div className="modal-header">
+							<h4>
+								{ingredientEditIndex === null
+									? 'Zutat hinzufuegen'
+									: 'Zutat bearbeiten'}
+							</h4>
+							<button className="ghost" type="button" onClick={closeIngredientModal}>
+								Schliessen
+							</button>
+						</div>
+						{ingredientError && <div className="error">{ingredientError}</div>}
+						<div className="form-grid">
+							<label className="field">
+								<span>Zutat</span>
+								<input
+									type="text"
+									placeholder="Zutat"
+									value={ingredientDraft.name}
+									onChange={(e) => handleIngredientDraftChange('name', e.target.value)}
+								/>
+							</label>
+							<label className="field">
+								<span>Menge</span>
+								<input
+									type="number"
+									placeholder="Menge"
+									value={ingredientDraft.quantity}
+									onChange={(e) =>
+										handleIngredientDraftChange('quantity', e.target.value)
+									}
+								/>
+							</label>
+							<label className="field">
+								<span>Fuer wieviele Personen?</span>
+								<input
+									type="number"
+									min={1}
+									value={ingredientDraftPeople}
+									onChange={(e) =>
+										setIngredientDraftPeople(parseInt(e.target.value, 10) || 1)
+									}
+								/>
+							</label>
+							<label className="field">
+								<span>Einheit</span>
+								<input
+									type="text"
+									placeholder="Einheit (g, ml, Stueck...)"
+									value={ingredientDraft.unit}
+									onChange={(e) =>
+										handleIngredientDraftChange('unit', e.target.value)
+									}
+								/>
+							</label>
+						</div>
+						<div className="modal-actions">
+							<button className="ghost" type="button" onClick={closeIngredientModal}>
+								Abbrechen
+							</button>
+							<button className="primary" type="button" onClick={handleSaveIngredient}>
+								Speichern
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };
