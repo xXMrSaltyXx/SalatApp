@@ -1,14 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+	activateTemplate,
 	fetchActiveTemplate,
 	fetchParticipants,
 	fetchResetSettings,
+	fetchTemplates,
 	removeParticipant,
 	saveTemplate,
 	joinParticipant,
 	updateResetSettings
 } from '../api';
-import type { Ingredient, Participant, ResetSettings, Template, User } from '../types';
+import type {
+	Ingredient,
+	Participant,
+	ResetSettings,
+	Template,
+	TemplateSummary,
+	User
+} from '../types';
 
 interface AdminProps {
 	user: User;
@@ -20,6 +29,8 @@ const emptyIngredient = (): Ingredient => ({ name: '', quantity: 0, unit: '' });
 
 const AdminPage: React.FC<AdminProps> = ({ user }) => {
 	const [template, setTemplate] = useState<Template | null>(null);
+	const [activeTemplateId, setActiveTemplateId] = useState<number | null>(null);
+	const [templates, setTemplates] = useState<TemplateSummary[]>([]);
 	const [title, setTitle] = useState('Standard Salat');
 	const servings = 1;
 	const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -38,6 +49,7 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 	const [addEmail, setAddEmail] = useState('');
 	const [loading, setLoading] = useState(true);
 	const [savingTemplate, setSavingTemplate] = useState(false);
+	const [switchingTemplateId, setSwitchingTemplateId] = useState<number | null>(null);
 	const [savingReset, setSavingReset] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [message, setMessage] = useState<string | null>(null);
@@ -46,15 +58,23 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 		setLoading(true);
 		setError(null);
 		try {
-			const [tpl, participantList, resetData] = await Promise.all([
+			const [tpl, participantList, resetData, templateList] = await Promise.all([
 				fetchActiveTemplate(),
 				fetchParticipants(),
-				fetchResetSettings()
+				fetchResetSettings(),
+				fetchTemplates()
 			]);
+			setTemplates(templateList);
 			if (tpl) {
 				setTemplate(tpl);
+				setActiveTemplateId(tpl.id);
 				setTitle(tpl.title);
 				setIngredients(tpl.ingredients.length > 0 ? tpl.ingredients : []);
+			} else {
+				setTemplate(null);
+				setActiveTemplateId(null);
+				setTitle('Standard Salat');
+				setIngredients([]);
 			}
 			setParticipants(participantList);
 			setResetSettings(resetData.settings);
@@ -78,6 +98,12 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 	}, []);
 
 	const peopleCount = useMemo(() => participants.length, [participants]);
+	const formatUpdatedAt = (value?: string) => {
+		if (!value) return 'Unbekannt';
+		const parsed = new Date(value);
+		if (Number.isNaN(parsed.getTime())) return 'Unbekannt';
+		return parsed.toLocaleString();
+	};
 
 	const formatIngredientAmount = (ingredient: Ingredient) => {
 		const quantity = Number(ingredient.quantity);
@@ -167,6 +193,11 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 				}))
 			});
 			setTemplate(saved);
+			setActiveTemplateId(saved.id);
+			setTitle(saved.title);
+			setIngredients(saved.ingredients.length > 0 ? saved.ingredients : []);
+			const templateList = await fetchTemplates();
+			setTemplates(templateList);
 			setMessage('Template gespeichert und aktiviert');
 		} catch (err: any) {
 			const message =
@@ -174,6 +205,37 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 			setError(message);
 		} finally {
 			setSavingTemplate(false);
+		}
+	};
+
+	const handleNewTemplate = () => {
+		setError(null);
+		setMessage(null);
+		setTemplate(null);
+		setTitle('Neues Rezept');
+		setIngredients([]);
+	};
+
+	const handleActivateTemplate = async (id: number) => {
+		if (switchingTemplateId) return;
+		setSwitchingTemplateId(id);
+		setError(null);
+		setMessage(null);
+		try {
+			const active = await activateTemplate(id);
+			setTemplate(active);
+			setActiveTemplateId(active.id);
+			setTitle(active.title);
+			setIngredients(active.ingredients.length > 0 ? active.ingredients : []);
+			const templateList = await fetchTemplates();
+			setTemplates(templateList);
+			setMessage('Template aktiviert');
+		} catch (err: any) {
+			const message =
+				err?.response?.data?.error || err?.message || 'Konnte Template nicht aktivieren';
+			setError(message);
+		} finally {
+			setSwitchingTemplateId(null);
 		}
 	};
 
@@ -224,7 +286,7 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 				resetHour: h,
 				resetMinute: m,
 				lastReset: resetSettings.lastReset || null,
-				activeTemplateId: resetSettings.activeTemplateId || null
+				activeTemplateId: activeTemplateId ?? null
 			});
 			setResetSettings(updated);
 			setMessage('Reset-Zeitplan gespeichert');
@@ -249,13 +311,23 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 							Teilnehmerzahl.
 						</p>
 					</div>
-					<button
-						className="primary"
-						onClick={handleSaveTemplate}
-						disabled={savingTemplate || loading}
-					>
-						{savingTemplate ? 'Speichern...' : 'Template speichern'}
-					</button>
+					<div className="button-row">
+						<button
+							className="ghost"
+							type="button"
+							onClick={handleNewTemplate}
+							disabled={savingTemplate || loading || switchingTemplateId !== null}
+						>
+							Neues Rezept
+						</button>
+						<button
+							className="primary"
+							onClick={handleSaveTemplate}
+							disabled={savingTemplate || loading}
+						>
+							{savingTemplate ? 'Speichern...' : 'Template speichern'}
+						</button>
+					</div>
 				</div>
 				{error && <div className="error">{error}</div>}
 				{message && <div className="success">{message}</div>}
@@ -263,6 +335,63 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 					<div className="skeleton" />
 				) : (
 					<>
+						<span className="field-label">Vorhandene Rezepte</span>
+						<div className="list">
+							{templates.map((tpl) => {
+								const isActive = tpl.id === activeTemplateId;
+								const isLoaded = template?.id === tpl.id;
+								return (
+									<div key={tpl.id} className="list-row">
+										<div>
+											<div className="item-name">{tpl.title}</div>
+											<div className="muted">
+												Zuletzt aktualisiert: {formatUpdatedAt(tpl.updatedAt)}
+											</div>
+										</div>
+										<div className="button-row">
+											{isActive ? (
+												isLoaded ? (
+													<span className="pill subtle">aktiv</span>
+												) : (
+													<button
+														className="secondary"
+														type="button"
+														onClick={() => handleActivateTemplate(tpl.id)}
+														disabled={
+															switchingTemplateId !== null ||
+															savingTemplate ||
+															loading
+														}
+													>
+														{switchingTemplateId === tpl.id
+															? 'Laden...'
+															: 'Bearbeiten'}
+													</button>
+												)
+											) : (
+												<button
+													className="secondary"
+													type="button"
+													onClick={() => handleActivateTemplate(tpl.id)}
+													disabled={
+														switchingTemplateId !== null ||
+														savingTemplate ||
+														loading
+												}
+												>
+													{switchingTemplateId === tpl.id
+														? 'Aktivieren...'
+														: 'Aktivieren'}
+												</button>
+											)}
+										</div>
+									</div>
+								);
+							})}
+							{templates.length === 0 && (
+								<p className="muted">Noch keine Rezepte vorhanden.</p>
+							)}
+						</div>
 						<div className="form-grid">
 							<label className="field">
 								<span>Titel</span>

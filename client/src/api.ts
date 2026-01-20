@@ -3,6 +3,7 @@ import type {
   User,
   Participant,
   Template,
+  TemplateSummary,
   ShoppingListResponse,
   ResetSettings,
   Ingredient,
@@ -118,7 +119,7 @@ export async function fetchActiveTemplate() {
 }
 
 export async function fetchTemplates() {
-  const res = await api.get<{ templates: Template[] }>('/templates');
+  const res = await api.get<{ templates: TemplateSummary[] }>('/templates');
   return res.data.templates;
 }
 

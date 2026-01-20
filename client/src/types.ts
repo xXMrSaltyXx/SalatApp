@@ -28,6 +28,13 @@ export interface Template {
   ingredients: Ingredient[];
 }
 
+export interface TemplateSummary {
+  id: number;
+  title: string;
+  servings: number;
+  updatedAt?: string;
+}
+
 export interface ShoppingListItem {
   name: string;
   quantity: number;

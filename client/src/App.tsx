@@ -3,11 +3,13 @@ import { BrowserRouter, NavLink, Route, Routes, useLocation } from 'react-router
 import { fetchMe, getStoredSessionToken, loginUser, registerUser, setSessionToken } from './api';
 import HomePage from './pages/Home';
 import AdminPage from './pages/Admin';
+import BillingPage from './pages/Billing';
 import type { User } from './types';
 
 function usePageTitle(location: ReturnType<typeof useLocation>) {
 	const title = useMemo(() => {
 		if (location.pathname.startsWith('/admin')) return 'Rezepte & Verwaltung';
+		if (location.pathname.startsWith('/abrechnung')) return 'Abrechnung';
 		return 'Salatrunde';
 	}, [location.pathname]);
 	useEffect(() => {
@@ -135,6 +137,12 @@ const AppShell: React.FC<{
 					<NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
 						Einschreiben
 					</NavLink>
+					<NavLink
+						to="/abrechnung"
+						className={({ isActive }) => (isActive ? 'active' : '')}
+					>
+						Abrechnung
+					</NavLink>
 					<NavLink to="/admin" className={({ isActive }) => (isActive ? 'active' : '')}>
 						Rezept & Verwaltung
 					</NavLink>
@@ -153,6 +161,7 @@ const AppShell: React.FC<{
 			<main>
 				<Routes>
 					<Route path="/" element={<HomePage user={user} />} />
+					<Route path="/abrechnung" element={<BillingPage user={user} />} />
 					<Route path="/admin" element={<AdminPage user={user} />} />
 				</Routes>
 			</main>
