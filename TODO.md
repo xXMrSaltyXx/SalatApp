@@ -8,13 +8,12 @@
 
 ### Einkaufsliste & Rezepte
 
-- **Unbeliebte Zutaten ausschließen**
-    - Als Nutzer möchte ich angeben können, welche Zutat(en) ich im aktuellen Rezept nicht mag, damit diese bei der berechneten Einkaufsliste nicht berücksichtigt werden.
+- **Rezeptvorlage löschen**
+    - Als Nutzer möchte ich eine Rezeptvorlage löschen können, damit ich veraltete oder fehlerhafte Vorlagen entfernen kann.
     - Akzeptanzkriterien:
-        - Pro Rezept können einzelne Zutaten als „nicht mögen“ markiert werden.
-        - Markierte Zutaten werden in der Einkaufsliste für diesen Nutzer nicht eingeplant.
-        - Die Einkaufsliste zeigt pro ausgeschlossene Zutat den Namen der Person(en), damit die Entscheidung nachvollziehbar bleibt.
-        - Optional: Ersatz‑Zutaten können vorgeschlagen oder manuell gesetzt werden.
+        - Die Löschung ist in der Vorlagenansicht verfügbar.
+        - Es gibt eine Bestätigung, um versehentliches Löschen zu verhindern.
+        - Die Rezeptvorlage ist danach nicht mehr auswählbar.
 
 ### Einkaufsstatus & Abrechnung
 

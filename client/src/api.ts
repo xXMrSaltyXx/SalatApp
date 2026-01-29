@@ -7,6 +7,7 @@ import type {
   ShoppingListResponse,
   ResetSettings,
   Ingredient,
+  IngredientExclusionsResponse,
 } from './types';
 
 const SESSION_STORAGE_KEY = 'salat_session_token';
@@ -161,4 +162,19 @@ export async function updateResetSettings(settings: ResetSettings) {
     settings,
   );
   return res.data.settings;
+}
+
+export async function fetchIngredientExclusions() {
+  const res = await api.get<IngredientExclusionsResponse>(
+    '/ingredient-exclusions',
+  );
+  return res.data;
+}
+
+export async function saveIngredientExclusions(exclusions: string[]) {
+  const res = await api.put<IngredientExclusionsResponse>(
+    '/ingredient-exclusions',
+    { exclusions },
+  );
+  return res.data;
 }

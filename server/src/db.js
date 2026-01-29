@@ -80,6 +80,24 @@ function migrate() {
     );
   `).run();
 
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS ingredient_exclusions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      template_id INTEGER NOT NULL,
+      ingredient_name TEXT NOT NULL,
+      ingredient_key TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (template_id) REFERENCES recipe_templates(id) ON DELETE CASCADE
+    );
+  `).run();
+
+  db.prepare(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ingredient_exclusions_unique
+    ON ingredient_exclusions (user_id, template_id, ingredient_key);
+  `).run();
+
   const settingsRow = db.prepare('SELECT id FROM settings WHERE id = 1').get();
   if (!settingsRow) {
     db.prepare(`

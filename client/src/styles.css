@@ -440,6 +440,12 @@ select {
 	background: #fbfdf8;
 }
 
+.list-row input[type='checkbox'] {
+	width: 18px;
+	height: 18px;
+	accent-color: var(--accent-strong);
+}
+
 .item-name {
 	font-weight: 700;
 }

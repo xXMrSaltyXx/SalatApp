@@ -39,6 +39,7 @@ export interface ShoppingListItem {
   name: string;
   quantity: number;
   unit: string;
+  excludedBy?: string[];
 }
 
 export interface ShoppingListResponse {
@@ -49,6 +50,11 @@ export interface ShoppingListResponse {
     servings: number;
   } | null;
   items: ShoppingListItem[];
+}
+
+export interface IngredientExclusionsResponse {
+  templateId: number | null;
+  exclusions: string[];
 }
 
 export interface ResetSettings {
