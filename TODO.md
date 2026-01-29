@@ -6,15 +6,6 @@
 
 ## User Stories
 
-### Einkaufsliste & Rezepte
-
-- **Rezeptvorlage löschen**
-    - Als Nutzer möchte ich eine Rezeptvorlage löschen können, damit ich veraltete oder fehlerhafte Vorlagen entfernen kann.
-    - Akzeptanzkriterien:
-        - Die Löschung ist in der Vorlagenansicht verfügbar.
-        - Es gibt eine Bestätigung, um versehentliches Löschen zu verhindern.
-        - Die Rezeptvorlage ist danach nicht mehr auswählbar.
-
 ### Einkaufsstatus & Abrechnung
 
 - **Einkaufen-Status per Button setzen**
@@ -42,6 +33,3 @@
 
 - **Abrechnung: E‑Mails versenden**
     - Automatischer Versand der Abrechnungs‑E‑Mails nach Abschluss an alle Teilnehmer außer den abrechnenden.
-
-- **Backend modularisieren**
-    - Keine „Gottklasse“, klare Module/Services, bessere Lesbarkeit und Wartbarkeit.
