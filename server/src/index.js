@@ -451,6 +451,21 @@ app.put('/api/template/:id', requireAuth, (req, res) => {
   res.json({ template });
 });
 
+app.delete('/api/template/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const result = db
+    .prepare('DELETE FROM recipe_templates WHERE id = ?')
+    .run(id);
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Template nicht gefunden' });
+  }
+  const settings = getSettings();
+  res.json({
+    removedId: Number(id),
+    activeTemplateId: settings.activeTemplateId ?? null,
+  });
+});
+
 app.post('/api/template/:id/activate', requireAuth, (req, res) => {
   const { id } = req.params;
   const template = db

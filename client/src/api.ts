@@ -149,6 +149,14 @@ export async function activateTemplate(id: number) {
   return res.data.template;
 }
 
+export async function deleteTemplate(id: number) {
+  const res = await api.delete<{
+    removedId: number;
+    activeTemplateId?: number | null;
+  }>(`/template/${id}`);
+  return res.data;
+}
+
 export async function fetchResetSettings() {
   const res = await api.get<{ settings: ResetSettings; nextReset: string }>(
     '/settings/reset',

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
 	activateTemplate,
+	deleteTemplate,
 	fetchActiveTemplate,
 	fetchParticipants,
 	fetchResetSettings,
@@ -50,6 +51,7 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 	const [loading, setLoading] = useState(true);
 	const [savingTemplate, setSavingTemplate] = useState(false);
 	const [switchingTemplateId, setSwitchingTemplateId] = useState<number | null>(null);
+	const [deletingTemplateId, setDeletingTemplateId] = useState<number | null>(null);
 	const [savingReset, setSavingReset] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [message, setMessage] = useState<string | null>(null);
@@ -239,6 +241,35 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 		}
 	};
 
+	const handleDeleteTemplate = async (id: number, templateTitle: string) => {
+		if (deletingTemplateId) return;
+		const confirmed = window.confirm(
+			`Rezeptvorlage "${templateTitle}" wirklich loeschen?`
+		);
+		if (!confirmed) return;
+		setDeletingTemplateId(id);
+		setError(null);
+		setMessage(null);
+		try {
+			const result = await deleteTemplate(id);
+			const templateList = await fetchTemplates();
+			setTemplates(templateList);
+			if (template?.id === id) {
+				setTemplate(null);
+				setTitle('Standard Salat');
+				setIngredients([]);
+			}
+			setActiveTemplateId(result.activeTemplateId ?? null);
+			setMessage('Template geloescht');
+		} catch (err: any) {
+			const message =
+				err?.response?.data?.error || err?.message || 'Konnte Template nicht loeschen';
+			setError(message);
+		} finally {
+			setDeletingTemplateId(null);
+		}
+	};
+
 	const handleAddParticipant = async () => {
 		setError(null);
 		setMessage(null);
@@ -384,6 +415,19 @@ const AdminPage: React.FC<AdminProps> = ({ user }) => {
 														: 'Aktivieren'}
 												</button>
 											)}
+											<button
+												className="ghost danger"
+												type="button"
+												onClick={() => handleDeleteTemplate(tpl.id, tpl.title)}
+												disabled={
+													deletingTemplateId !== null ||
+													switchingTemplateId !== null ||
+													savingTemplate ||
+													loading
+												}
+											>
+												{deletingTemplateId === tpl.id ? 'Loeschen...' : 'Loeschen'}
+											</button>
 										</div>
 									</div>
 								);
